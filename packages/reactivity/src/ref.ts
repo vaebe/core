@@ -29,17 +29,16 @@ export interface Ref<T = any, S = T> {
   get value(): T
   set value(_: S)
   /**
-   * Type differentiator only.
-   * We need this to be in public d.ts but don't want it to show up in IDE
-   * autocomplete, so we use a private Symbol instead.
-   */
-  [RefSymbol]: true
+   * 仅类型区分符。
+   * 我们需要这个在公共 d.ts 中，但不希望它出现在 IDE 自动完成中，
+   * 所以我们使用私有 Symbol。
+   */ [RefSymbol]: true
 }
 
 /**
- * Checks if a value is a ref object.
+ * 检查值是否是 ref 对象。
  *
- * @param r - The value to inspect.
+ * @param r - 要检查的值。
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#isref}
  */
 export function isRef<T>(r: Ref<T> | unknown): r is Ref<T>
@@ -49,10 +48,10 @@ export function isRef(r: any): r is Ref {
 }
 
 /**
- * Takes an inner value and returns a reactive and mutable ref object, which
- * has a single property `.value` that points to the inner value.
+ * 接受一个内部值并返回一个响应式和可变的 ref 对象，
+ * 该对象具有一个指向内部值的单个属性 `.value`。
  *
- * @param value - The object to wrap in the ref.
+ * @param value - 要包装在 ref 中的对象。
  * @see {@link https://vuejs.org/api/reactivity-core.html#ref}
  */
 export function ref<T>(
@@ -71,20 +70,20 @@ export type ShallowRef<T = any, S = T> = Ref<T, S> & {
 }
 
 /**
- * Shallow version of {@link ref}.
+ * {@link ref} 的浅层版本。
  *
  * @example
  * ```js
  * const state = shallowRef({ count: 1 })
  *
- * // does NOT trigger change
+ * // 不会触发更改
  * state.value.count = 2
  *
- * // does trigger change
+ * // 会触发更改
  * state.value = { count: 2 }
  * ```
  *
- * @param value - The "inner value" for the shallow ref.
+ * @param value - 浅层 ref 的"内部值"。
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#shallowref}
  */
 export function shallowRef<T>(
@@ -164,8 +163,8 @@ class RefImpl<T = any> {
 }
 
 /**
- * Force trigger effects that depends on a shallow ref. This is typically used
- * after making deep mutations to the inner value of a shallow ref.
+ * 强制触发依赖于浅层 ref 的 effects。这通常在
+ * 对浅层 ref 的内部值进行深度修改后使用。
  *
  * @example
  * ```js
@@ -173,19 +172,19 @@ class RefImpl<T = any> {
  *   greet: 'Hello, world'
  * })
  *
- * // Logs "Hello, world" once for the first run-through
+ * // 第一次运行时记录一次 "Hello, world"
  * watchEffect(() => {
  *   console.log(shallow.value.greet)
  * })
  *
- * // This won't trigger the effect because the ref is shallow
+ * // 这不会触发 effect，因为 ref 是浅层的
  * shallow.value.greet = 'Hello, universe'
  *
- * // Logs "Hello, universe"
+ * // 记录 "Hello, universe"
  * triggerRef(shallow)
  * ```
  *
- * @param ref - The ref whose tied effects shall be executed.
+ * @param ref - 其关联的 effects 将被执行的 ref。
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#triggerref}
  */
 export function triggerRef(ref: Ref): void {
@@ -213,19 +212,18 @@ export type MaybeRef<T = any> =
 export type MaybeRefOrGetter<T = any> = MaybeRef<T> | ComputedRef<T> | (() => T)
 
 /**
- * Returns the inner value if the argument is a ref, otherwise return the
- * argument itself. This is a sugar function for
- * `val = isRef(val) ? val.value : val`.
+ * 如果参数是 ref，则返回内部值，否则返回参数本身。
+ * 这是一个糖函数，用于 `val = isRef(val) ? val.value : val`。
  *
  * @example
  * ```js
  * function useFoo(x: number | Ref<number>) {
  *   const unwrapped = unref(x)
- *   // unwrapped is guaranteed to be number now
+ *   // unwrapped 现在保证是 number
  * }
  * ```
  *
- * @param ref - Ref or plain value to be converted into the plain value.
+ * @param ref - 要转换为普通值的 ref 或普通值。
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#unref}
  */
 export function unref<T>(ref: MaybeRef<T> | ComputedRef<T>): T {
@@ -233,10 +231,9 @@ export function unref<T>(ref: MaybeRef<T> | ComputedRef<T>): T {
 }
 
 /**
- * Normalizes values / refs / getters to values.
- * This is similar to {@link unref}, except that it also normalizes getters.
- * If the argument is a getter, it will be invoked and its return value will
- * be returned.
+ * 将值 / ref / getter 标准化为值。
+ * 这类似于 {@link unref}，只是它还标准化 getter。
+ * 如果参数是 getter，它将被调用并返回其返回值。
  *
  * @example
  * ```js
@@ -245,7 +242,7 @@ export function unref<T>(ref: MaybeRef<T> | ComputedRef<T>): T {
  * toValue(() => 1) // 1
  * ```
  *
- * @param source - A getter, an existing ref, or a non-function value.
+ * @param source - getter、现有的 ref 或非函数值。
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#tovalue}
  */
 export function toValue<T>(source: MaybeRefOrGetter<T>): T {
@@ -269,12 +266,10 @@ const shallowUnwrapHandlers: ProxyHandler<any> = {
 }
 
 /**
- * Returns a proxy for the given object that shallowly unwraps properties that
- * are refs. If the object already is reactive, it's returned as-is. If not, a
- * new reactive proxy is created.
+ * 返回给定对象的代理，该代理浅层解包是 ref 的属性。
+ * 如果对象已经是响应式的，则按原样返回。如果不是，则创建一个新的响应式代理。
  *
- * @param objectWithRefs - Either an already-reactive object or a simple object
- * that contains refs.
+ * @param objectWithRefs - 已经是响应式的对象或包含 ref 的简单对象。
  */
 export function proxyRefs<T extends object>(
   objectWithRefs: T,
@@ -319,10 +314,9 @@ class CustomRefImpl<T> {
 }
 
 /**
- * Creates a customized ref with explicit control over its dependency tracking
- * and updates triggering.
+ * 创建一个自定义 ref，可以显式控制其依赖追踪和更新触发。
  *
- * @param factory - The function that receives the `track` and `trigger` callbacks.
+ * @param factory - 接收 `track` 和 `trigger` 回调的函数。
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#customref}
  */
 export function customRef<T>(factory: CustomRefFactory<T>): Ref<T> {
@@ -334,11 +328,10 @@ export type ToRefs<T = any> = {
 }
 
 /**
- * Converts a reactive object to a plain object where each property of the
- * resulting object is a ref pointing to the corresponding property of the
- * original object. Each individual ref is created using {@link toRef}.
+ * 将响应式对象转换为普通对象，其中结果对象的每个属性都是指向
+ * 原始对象相应属性的 ref。每个单独的 ref 都是使用 {@link toRef} 创建的。
  *
- * @param object - Reactive object to be made into an object of linked refs.
+ * @param object - 要转换为链接 ref 对象的响应式对象。
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#torefs}
  */
 /*@__NO_SIDE_EFFECTS__*/
@@ -370,9 +363,9 @@ class ObjectRefImpl<T extends object, K extends keyof T> {
     let shallow = true
     let obj = _object
 
-    // For an array with integer key, refs are not unwrapped
+    // 对于具有整数键的数组，ref 不会解包
     if (!isArray(_object) || !isIntegerKey(String(_key))) {
-      // Otherwise, check each proxy layer for unwrapping
+      // 否则，检查每个代理层以进行解包
       do {
         shallow = !isProxy(obj) || isShallow(obj)
       } while (shallow && (obj = (obj as Target)[ReactiveFlags.RAW]))
@@ -420,24 +413,23 @@ class GetterRefImpl<T> {
 export type ToRef<T> = IfAny<T, Ref<T>, [T] extends [Ref] ? T : Ref<T>>
 
 /**
- * Used to normalize values / refs / getters into refs.
+ * 用于将值 / ref / getter 标准化为 ref。
  *
  * @example
  * ```js
- * // returns existing refs as-is
+ * // 按原样返回现有的 ref
  * toRef(existingRef)
  *
- * // creates a ref that calls the getter on .value access
+ * // 创建一个在 .value 访问时调用 getter 的 ref
  * toRef(() => props.foo)
  *
- * // creates normal refs from non-function values
- * // equivalent to ref(1)
+ * // 从非函数值创建普通 ref
+ * // 等同于 ref(1)
  * toRef(1)
  * ```
  *
- * Can also be used to create a ref for a property on a source reactive object.
- * The created ref is synced with its source property: mutating the source
- * property will update the ref, and vice-versa.
+ * 也可以用于为源响应式对象的属性创建 ref。
+ * 创建的 ref 与其源属性同步：修改源属性将更新 ref，反之亦然。
  *
  * @example
  * ```js
@@ -448,18 +440,17 @@ export type ToRef<T> = IfAny<T, Ref<T>, [T] extends [Ref] ? T : Ref<T>>
  *
  * const fooRef = toRef(state, 'foo')
  *
- * // mutating the ref updates the original
+ * // 修改 ref 会更新原始值
  * fooRef.value++
  * console.log(state.foo) // 2
  *
- * // mutating the original also updates the ref
+ * // 修改原始值也会更新 ref
  * state.foo++
  * console.log(fooRef.value) // 3
  * ```
  *
- * @param source - A getter, an existing ref, a non-function value, or a
- *                 reactive object to create a property ref from.
- * @param [key] - (optional) Name of the property in the reactive object.
+ * @param source - getter、现有的 ref、非函数值或要从中创建属性 ref 的响应式对象。
+ * @param [key] - （可选）响应式对象中的属性名称。
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#toref}
  */
 export function toRef<T>(
@@ -504,9 +495,8 @@ function propertyToRef(
 }
 
 /**
- * This is a special exported interface for other packages to declare
- * additional types that should bail out for ref unwrapping. For example
- * \@vue/runtime-dom can declare it like so in its d.ts:
+ * 这是一个特殊的导出接口，供其他包声明应该退出 ref 解包的附加类型。
+ * 例如，\@vue/runtime-dom 可以在其 d.ts 中这样声明：
  *
  * ``` ts
  * declare module '@vue/reactivity' {

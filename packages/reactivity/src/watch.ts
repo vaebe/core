@@ -25,9 +25,9 @@ import { isReactive, isShallow } from './reactive'
 import { type Ref, isRef } from './ref'
 import { getCurrentScope } from './effectScope'
 
-// These errors were transferred from `packages/runtime-core/src/errorHandling.ts`
-// to @vue/reactivity to allow co-location with the moved base watch logic, hence
-// it is essential to keep these values unchanged.
+// 这些错误从 `packages/runtime-core/src/errorHandling.ts`
+// 转移到 @vue/reactivity，以便与移动的基本 watch 逻辑共存，因此
+// 保持这些值不变至关重要。
 export enum WatchErrorCodes {
   WATCH_GETTER = 2,
   WATCH_CALLBACK,
@@ -74,7 +74,7 @@ export interface WatchHandle extends WatchStopHandle {
   stop: () => void
 }
 
-// initial value for watchers to trigger on undefined initial values
+// 监听器在未定义初始值时触发的初始值
 const INITIAL_WATCHER_VALUE = {}
 
 export type WatchScheduler = (job: () => void, isFirstRun: boolean) => void
@@ -83,22 +83,19 @@ const cleanupMap: WeakMap<ReactiveEffect, (() => void)[]> = new WeakMap()
 let activeWatcher: ReactiveEffect | undefined = undefined
 
 /**
- * Returns the current active effect if there is one.
+ * 如果存在当前活动的 effect，则返回它。
  */
 export function getCurrentWatcher(): ReactiveEffect<any> | undefined {
   return activeWatcher
 }
 
 /**
- * Registers a cleanup callback on the current active effect. This
- * registered cleanup callback will be invoked right before the
- * associated effect re-runs.
+ * 在当前活动 effect 上注册清理回调。此注册的清理回调将在
+ * 关联的 effect 重新运行之前立即调用。
  *
- * @param cleanupFn - The callback function to attach to the effect's cleanup.
- * @param failSilently - if `true`, will not throw warning when called without
- * an active effect.
- * @param owner - The effect that this cleanup function should be attached to.
- * By default, the current active effect.
+ * @param cleanupFn - 要附加到 effect 清理的回调函数。
+ * @param failSilently - 如果为 `true`，则在没有活动 effect 时调用时不会抛出警告。
+ * @param owner - 此清理函数应该附加到的 effect。默认为当前活动 effect。
  */
 export function onWatcherCleanup(
   cleanupFn: () => void,
@@ -134,12 +131,12 @@ export function watch(
   }
 
   const reactiveGetter = (source: object) => {
-    // traverse will happen in wrapped getter below
+    // traverse 将在下面的包装 getter 中发生
     if (deep) return source
-    // for `deep: false | 0` or shallow reactive, only traverse root-level properties
+    // 对于 `deep: false | 0` 或浅层响应式，仅遍历根级属性
     if (isShallow(source) || deep === false || deep === 0)
       return traverse(source, 1)
-    // for `deep: undefined` on a reactive object, deeply traverse all properties
+    // 对于响应式对象上的 `deep: undefined`，深度遍历所有属性
     return traverse(source)
   }
 
@@ -173,12 +170,12 @@ export function watch(
       })
   } else if (isFunction(source)) {
     if (cb) {
-      // getter with cb
+      // 带有 cb 的 getter
       getter = call
         ? () => call(source, WatchErrorCodes.WATCH_GETTER)
         : (source as () => any)
     } else {
-      // no cb -> simple effect
+      // 没有 cb -> 简单 effect
       getter = () => {
         if (cleanup) {
           pauseTracking()
@@ -247,7 +244,7 @@ export function watch(
           ? (newValue as any[]).some((v, i) => hasChanged(v, oldValue[i]))
           : hasChanged(newValue, oldValue))
       ) {
-        // cleanup before running cb again
+        // 再次运行 cb 之前清理
         if (cleanup) {
           cleanup()
         }
@@ -256,7 +253,7 @@ export function watch(
         try {
           const args = [
             newValue,
-            // pass undefined as the old value when it's changed for the first time
+            // 第一次更改时将 undefined 作为旧值传递
             oldValue === INITIAL_WATCHER_VALUE
               ? undefined
               : isMultiSource && oldValue[0] === INITIAL_WATCHER_VALUE

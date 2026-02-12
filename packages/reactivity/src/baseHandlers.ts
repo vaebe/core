@@ -30,16 +30,16 @@ const isNonTrackableKeys = /*@__PURE__*/ makeMap(`__proto__,__v_isRef,__isVue`)
 const builtInSymbols = new Set(
   /*@__PURE__*/
   Object.getOwnPropertyNames(Symbol)
-    // ios10.x Object.getOwnPropertyNames(Symbol) can enumerate 'arguments' and 'caller'
-    // but accessing them on Symbol leads to TypeError because Symbol is a strict mode
-    // function
+    // ios10.x Object.getOwnPropertyNames(Symbol) 可以枚举 'arguments' 和 'caller'
+    // 但在 Symbol 上访问它们会导致 TypeError，因为 Symbol 是一个严格模式
+    // 函数
     .filter(key => key !== 'arguments' && key !== 'caller')
     .map(key => Symbol[key as keyof SymbolConstructor])
     .filter(isSymbol),
 )
 
 function hasOwnProperty(this: object, key: unknown) {
-  // #10455 hasOwnProperty may be called with non-string values
+  // #10455 hasOwnProperty 可能会被非字符串值调用
   if (!isSymbol(key)) key = String(key)
   const obj = toRaw(this)
   track(obj, TrackOpTypes.HAS, key)
@@ -99,9 +99,9 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
     const res = Reflect.get(
       target,
       key,
-      // if this is a proxy wrapping a ref, return methods using the raw ref
-      // as receiver so that we don't have to call `toRaw` on the ref in all
-      // its class methods
+      // 如果这是一个包装 ref 的代理，使用原始 ref 返回方法
+      // 作为 receiver，这样我们就不必在 ref 的所有
+      // 类方法中调用 `toRaw`
       isRef(target) ? target : receiver,
     )
 
@@ -118,15 +118,15 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
     }
 
     if (isRef(res)) {
-      // ref unwrapping - skip unwrap for Array + integer key.
+      // ref 解包 - 跳过 Array + 整数键的解包。
       const value = targetIsArray && isIntegerKey(key) ? res : res.value
       return isReadonly && isObject(value) ? readonly(value) : value
     }
 
     if (isObject(res)) {
-      // Convert returned value into a proxy as well. we do the isObject check
-      // here to avoid invalid value warning. Also need to lazy access readonly
-      // and reactive here to avoid circular dependency.
+      // 将返回的值也转换为代理。我们在这里进行 isObject 检查
+      // 以避免无效值警告。还需要延迟访问 readonly
+      // 和 reactive 以避免循环依赖。
       return isReadonly ? readonly(res) : reactive(res)
     }
 
@@ -168,7 +168,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
         }
       }
     } else {
-      // in shallow mode, objects are set as-is regardless of reactive or not
+      // 在浅层模式下，对象按原样设置，无论是否响应式
     }
 
     const hadKey = isArrayWithIntegerKey
@@ -180,7 +180,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
       value,
       isRef(target) ? target : receiver,
     )
-    // don't trigger if target is something up in the prototype chain of original
+    // 如果目标是原始原型链中的某个对象，则不触发
     if (target === toRaw(receiver)) {
       if (!hadKey) {
         trigger(target, TriggerOpTypes.ADD, key, value)
@@ -257,8 +257,8 @@ export const readonlyHandlers: ProxyHandler<object> =
 export const shallowReactiveHandlers: MutableReactiveHandler =
   /*@__PURE__*/ new MutableReactiveHandler(true)
 
-// Props handlers are special in the sense that it should not unwrap top-level
-// refs (in order to allow refs to be explicitly passed down), but should
-// retain the reactivity of the normal readonly object.
+// Props 处理程序是特殊的，它不应该解包顶层的
+// ref（为了允许显式向下传递 ref），但应该
+// 保留普通 readonly 对象的响应性。
 export const shallowReadonlyHandlers: ReadonlyReactiveHandler =
   /*@__PURE__*/ new ReadonlyReactiveHandler(true)

@@ -9,7 +9,7 @@ export class EffectScope {
    */
   private _active = true
   /**
-   * @internal track `on` calls, allow `on` call multiple times
+   * @internal 追踪 `on` 调用，允许多次调用 `on`
    */
   private _on = 0
   /**
@@ -24,18 +24,17 @@ export class EffectScope {
   private _isPaused = false
 
   /**
-   * only assigned by undetached scope
+   * 仅由未分离的作用域分配
    * @internal
    */
   parent: EffectScope | undefined
   /**
-   * record undetached scopes
+   * 记录未分离的作用域
    * @internal
    */
   scopes: EffectScope[] | undefined
   /**
-   * track a child scope's index in its parent's scopes array for optimized
-   * removal
+   * 追踪子作用域在其父作用域的 scopes 数组中的索引以便优化删除
    * @internal
    */
   private index: number | undefined
@@ -73,7 +72,7 @@ export class EffectScope {
   }
 
   /**
-   * Resumes the effect scope, including all child scopes and effects.
+   * 恢复 effect 作用域，包括所有子作用域和 effects。
    */
   resume(): void {
     if (this._active) {
@@ -108,7 +107,7 @@ export class EffectScope {
 
   prevScope: EffectScope | undefined
   /**
-   * This should only be called on non-detached scopes
+   * 这应该只在非分离作用域上调用
    * @internal
    */
   on(): void {
@@ -150,9 +149,9 @@ export class EffectScope {
         this.scopes.length = 0
       }
 
-      // nested scope, dereference from parent to avoid memory leaks
+      // 嵌套作用域，从父级取消引用以避免内存泄漏
       if (!this.detached && this.parent && !fromParent) {
-        // optimized O(1) removal
+        // 优化的 O(1) 删除
         const last = this.parent.scopes!.pop()
         if (last && last !== this) {
           this.parent.scopes![this.index!] = last
@@ -165,12 +164,11 @@ export class EffectScope {
 }
 
 /**
- * Creates an effect scope object which can capture the reactive effects (i.e.
- * computed and watchers) created within it so that these effects can be
- * disposed together. For detailed use cases of this API, please consult its
- * corresponding {@link https://github.com/vuejs/rfcs/blob/master/active-rfcs/0041-reactivity-effect-scope.md | RFC}.
+ * 创建一个 effect 作用域对象，它可以捕获在其中创建的响应式 effects（即
+ * computed 和 watchers），以便这些 effects 可以一起被释放。有关此 API 的详细用例，请查阅其
+ * 相应的 {@link https://github.com/vuejs/rfcs/blob/master/active-rfcs/0041-reactivity-effect-scope.md | RFC}。
  *
- * @param detached - Can be used to create a "detached" effect scope.
+ * @param detached - 可用于创建"分离的" effect 作用域。
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#effectscope}
  */
 export function effectScope(detached?: boolean): EffectScope {
@@ -178,7 +176,7 @@ export function effectScope(detached?: boolean): EffectScope {
 }
 
 /**
- * Returns the current active effect scope if there is one.
+ * 如果存在当前活动的 effect 作用域，则返回它。
  *
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#getcurrentscope}
  */
@@ -187,10 +185,10 @@ export function getCurrentScope(): EffectScope | undefined {
 }
 
 /**
- * Registers a dispose callback on the current active effect scope. The
- * callback will be invoked when the associated effect scope is stopped.
+ * 在当前活动的 effect 作用域上注册释放回调。当关联的 effect 作用域停止时，
+ * 将调用该回调。
  *
- * @param fn - The callback function to attach to the scope's cleanup.
+ * @param fn - 要附加到作用域清理的回调函数。
  * @see {@link https://vuejs.org/api/reactivity-advanced.html#onscopedispose}
  */
 export function onScopeDispose(fn: () => void, failSilently = false): void {

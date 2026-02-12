@@ -53,8 +53,7 @@ function createIterableMethod(
         TrackOpTypes.ITERATE,
         isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY,
       )
-    // return a wrapped iterator which returns observed versions of the
-    // values emitted from the real iterator
+    // 返回一个包装的迭代器，它返回从真实迭代器发出的值的被观察版本
     return extend(
       // inheriting all iterator properties
       Object.create(innerIterator),
@@ -99,8 +98,7 @@ function createInstrumentations(
 ): Instrumentations {
   const instrumentations: Instrumentations = {
     get(this: MapTypes, key: unknown) {
-      // #1772: readonly(reactive(Map)) should return readonly + reactive version
-      // of the value
+      // #1772: readonly(reactive(Map)) 应该返回 readonly + reactive 版本的值
       const target = this[ReactiveFlags.RAW]
       const rawTarget = toRaw(target)
       const rawKey = toRaw(key)
@@ -118,7 +116,7 @@ function createInstrumentations(
         return wrap(target.get(rawKey))
       } else if (target !== rawTarget) {
         // #3602 readonly(reactive(Map))
-        // ensure that the nested reactive `Map` can do tracking for itself
+        // 确保嵌套的响应式 `Map` 可以为自己进行追踪
         target.get(key)
       }
     },
@@ -148,9 +146,9 @@ function createInstrumentations(
       const wrap = shallow ? toShallow : readonly ? toReadonly : toReactive
       !readonly && track(rawTarget, TrackOpTypes.ITERATE, ITERATE_KEY)
       return target.forEach((value: unknown, key: unknown) => {
-        // important: make sure the callback is
-        // 1. invoked with the reactive map as `this` and 3rd arg
-        // 2. the value received should be a corresponding reactive/readonly.
+        // 重要：确保回调函数
+        // 1. 使用响应式 map 作为 `this` 和第 3 个参数调用
+        // 2. 接收的值应该是相应的响应式/readonly。
         return callback.call(thisArg, wrap(value), wrap(key), observed)
       })
     },
@@ -215,7 +213,7 @@ function createInstrumentations(
             }
 
             const oldValue = get ? get.call(target, key) : undefined
-            // forward the operation before queueing reactions
+            // 在排队反应之前转发操作
             const result = target.delete(key)
             if (hadKey) {
               trigger(target, TriggerOpTypes.DELETE, key, undefined, oldValue)

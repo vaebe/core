@@ -19,7 +19,7 @@ declare const WritableComputedRefSymbol: unique symbol
 interface BaseComputedRef<T, S = T> extends Ref<T, S> {
   [ComputedRefSymbol]: true
   /**
-   * @deprecated computed no longer uses effect
+   * @deprecated computed 不再使用 effect
    */
   effect: ComputedRefImpl
 }
@@ -63,7 +63,7 @@ export class ComputedRefImpl<T = any> implements Subscriber {
    */
   readonly __v_isReadonly: boolean
   // TODO isolatedDeclarations ReactiveFlags.IS_READONLY
-  // A computed is also a subscriber that tracks other deps
+  // computed 也是一个追踪其他依赖的订阅者
   /**
    * @internal
    */
@@ -89,15 +89,15 @@ export class ComputedRefImpl<T = any> implements Subscriber {
    */
   next?: Subscriber = undefined
 
-  // for backwards compat
+  // 用于向后兼容
   effect: this = this
-  // dev only
+  // 仅开发环境
   onTrack?: (event: DebuggerEvent) => void
-  // dev only
+  // 仅开发环境
   onTrigger?: (event: DebuggerEvent) => void
 
   /**
-   * Dev only
+   * 仅开发环境
    * @internal
    */
   _warnRecursive?: boolean
@@ -118,13 +118,13 @@ export class ComputedRefImpl<T = any> implements Subscriber {
     this.flags |= EffectFlags.DIRTY
     if (
       !(this.flags & EffectFlags.NOTIFIED) &&
-      // avoid infinite self recursion
+      // 避免无限自递归
       activeSub !== this
     ) {
       batch(this, true)
       return true
     } else if (__DEV__) {
-      // TODO warn
+      // TODO 警告
     }
   }
 
@@ -137,7 +137,7 @@ export class ComputedRefImpl<T = any> implements Subscriber {
         })
       : this.dep.track()
     refreshComputed(this)
-    // sync version after evaluation
+    // 评估后同步版本
     if (link) {
       link.version = this.dep.version
     }
@@ -154,22 +154,21 @@ export class ComputedRefImpl<T = any> implements Subscriber {
 }
 
 /**
- * Takes a getter function and returns a readonly reactive ref object for the
- * returned value from the getter. It can also take an object with get and set
- * functions to create a writable ref object.
+ * 接受一个 getter 函数并返回一个只读的响应式 ref 对象，该对象的值来自 getter 的返回值。
+ * 也可以接受一个带有 get 和 set 函数的对象来创建一个可写的 ref 对象。
  *
  * @example
  * ```js
- * // Creating a readonly computed ref:
+ * // 创建一个只读的计算 ref：
  * const count = ref(1)
  * const plusOne = computed(() => count.value + 1)
  *
  * console.log(plusOne.value) // 2
- * plusOne.value++ // error
+ * plusOne.value++ // 错误
  * ```
  *
  * ```js
- * // Creating a writable computed ref:
+ * // 创建一个可写的计算 ref：
  * const count = ref(1)
  * const plusOne = computed({
  *   get: () => count.value + 1,
@@ -182,8 +181,8 @@ export class ComputedRefImpl<T = any> implements Subscriber {
  * console.log(count.value) // 0
  * ```
  *
- * @param getter - Function that produces the next value.
- * @param debugOptions - For debugging. See {@link https://vuejs.org/guide/extras/reactivity-in-depth.html#computed-debugging}.
+ * @param getter - 产生下一个值的函数。
+ * @param debugOptions - 用于调试。参见 {@link https://vuejs.org/guide/extras/reactivity-in-depth.html#computed-debugging}。
  * @see {@link https://vuejs.org/api/reactivity-core.html#computed}
  */
 export function computed<T>(
