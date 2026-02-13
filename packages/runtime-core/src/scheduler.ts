@@ -6,19 +6,16 @@ export enum SchedulerJobFlags {
   QUEUED = 1 << 0,
   PRE = 1 << 1,
   /**
-   * Indicates whether the effect is allowed to recursively trigger itself
-   * when managed by the scheduler.
+   * 表示当由调度器管理时，effect 是否允许递归地触发自身。
    *
-   * By default, a job cannot trigger itself because some built-in method calls,
-   * e.g. Array.prototype.push actually performs reads as well (#1740) which
-   * can lead to confusing infinite loops.
-   * The allowed cases are component update functions and watch callbacks.
-   * Component update functions may update child component props, which in turn
-   * trigger flush: "pre" watch callbacks that mutates state that the parent
-   * relies on (#1801). Watch callbacks doesn't track its dependencies so if it
-   * triggers itself again, it's likely intentional and it is the user's
-   * responsibility to perform recursive state mutation that eventually
-   * stabilizes (#1727).
+   * 默认情况下，job 不能触发自身，因为一些内置方法调用，
+   * 例如 Array.prototype.push 实际上也会执行读取操作 (#1740)，
+   * 这可能导致令人困惑的无限循环。
+   * 允许的情况是组件更新函数和 watch 回调。
+   * 组件更新函数可能会更新子组件的 props，这进而会触发
+   * 修改父组件依赖状态的 flush: "pre" watch 回调 (#1801)。
+   * Watch 回调不会追踪其依赖，因此如果它再次触发自身，
+   * 很可能是故意的，用户有责任执行递归状态变更使其最终稳定 (#1727)。
    */
   ALLOW_RECURSE = 1 << 2,
   DISPOSED = 1 << 3,
@@ -27,13 +24,12 @@ export enum SchedulerJobFlags {
 export interface SchedulerJob extends Function {
   id?: number
   /**
-   * flags can technically be undefined, but it can still be used in bitwise
-   * operations just like 0.
+   * flags 技术上可以是 undefined，但它仍然可以像 0 一样用于位运算。
    */
   flags?: SchedulerJobFlags
   /**
-   * Attached by renderer.ts when setting up a component's render effect
-   * Used to obtain component information when reporting max recursive updates.
+   * 由 renderer.ts 在设置组件的渲染 effect 时附加
+   * 用于在报告最大递归更新时获取组件信息。
    */
   i?: ComponentInternalInstance
 }
@@ -66,15 +62,12 @@ export function nextTick<T, R>(
   return fn ? p.then(this ? fn.bind(this) : fn) : p
 }
 
-// Use binary-search to find a suitable position in the queue. The queue needs
-// to be sorted in increasing order of the job ids. This ensures that:
-// 1. Components are updated from parent to child. As the parent is always
-//    created before the child it will always have a smaller id.
-// 2. If a component is unmounted during a parent component's update, its update
-//    can be skipped.
-// A pre watcher will have the same id as its component's update job. The
-// watcher should be inserted immediately before the update job. This allows
-// watchers to be skipped if the component is unmounted by the parent update.
+// 使用二分查找在队列中找到合适的位置。队列需要按照 job id 的升序排列。
+// 这确保了：
+// 1. 组件从父到子更新。因为父组件总是在子组件之前创建，所以它总是有更小的 id。
+// 2. 如果组件在父组件更新期间被卸载，它的更新可以被跳过。
+// pre watcher 将与其组件的更新 job 具有相同的 id。该 watcher 应该立即插入到更新 job 之前。
+// 这允许在组件被父组件更新卸载时跳过 watcher。
 function findInsertionIndex(id: number) {
   let start = flushIndex + 1
   let end = queue.length
@@ -102,7 +95,7 @@ export function queueJob(job: SchedulerJob): void {
     const lastJob = queue[queue.length - 1]
     if (
       !lastJob ||
-      // fast path when the job id is larger than the tail
+      // 当 job id 大于尾部时的快速路径
       (!(job.flags! & SchedulerJobFlags.PRE) && jobId >= getId(lastJob))
     ) {
       queue.push(job)
@@ -131,10 +124,8 @@ export function queuePostFlushCb(cb: SchedulerJobs): void {
       cb.flags! |= SchedulerJobFlags.QUEUED
     }
   } else {
-    // if cb is an array, it is a component lifecycle hook which can only be
-    // triggered by a job, which is already deduped in the main queue, so
-    // we can skip duplicate check here to improve perf
-    pendingPostFlushCbs.push(...cb)
+    // 如果 cb 是一个数组，它是一个组件生命周期钩子，只能由 job 触发，
+    // 而 job 已经在主队列中去重了，所以我们可以跳过重复检查以提高性能    pendingPostFlushCbs.push(...cb)
   }
   queueFlush()
 }
@@ -142,7 +133,7 @@ export function queuePostFlushCb(cb: SchedulerJobs): void {
 export function flushPreFlushCbs(
   instance?: ComponentInternalInstance,
   seen?: CountMap,
-  // skip the current job
+  // 跳过当前 job
   i: number = flushIndex + 1,
 ): void {
   if (__DEV__) {
@@ -177,7 +168,7 @@ export function flushPostFlushCbs(seen?: CountMap): void {
     )
     pendingPostFlushCbs.length = 0
 
-    // #1947 already has active queue, nested flushPostFlushCbs call
+    // #1947 已经有活动队列，嵌套的 flushPostFlushCbs 调用
     if (activePostFlushCbs) {
       activePostFlushCbs.push(...deduped)
       return
@@ -216,11 +207,10 @@ function flushJobs(seen?: CountMap) {
     seen = seen || new Map()
   }
 
-  // conditional usage of checkRecursiveUpdate must be determined out of
-  // try ... catch block since Rollup by default de-optimizes treeshaking
-  // inside try-catch. This can leave all warning code unshaked. Although
-  // they would get eventually shaken by a minifier like terser, some minifiers
-  // would fail to do that (e.g. https://github.com/evanw/esbuild/issues/1610)
+  // checkRecursiveUpdate 的条件使用必须在 try ... catch 块之外确定，
+  // 因为 Rollup 默认会对 try-catch 内部的 treeshaking 进行降级优化。
+  // 这可能使所有警告代码未被 shaking。虽然它们最终会被像 terser 这样的压缩器 shaking，
+  // 但某些压缩器会失败（例如 https://github.com/evanw/esbuild/issues/1610）
   const check = __DEV__
     ? (job: SchedulerJob) => checkRecursiveUpdates(seen!, job)
     : NOOP
@@ -246,7 +236,7 @@ function flushJobs(seen?: CountMap) {
       }
     }
   } finally {
-    // If there was an error we still need to clear the QUEUED flags
+    // 如果有错误，我们仍然需要清除 QUEUED 标志
     for (; flushIndex < queue.length; flushIndex++) {
       const job = queue[flushIndex]
       if (job) {
@@ -260,7 +250,7 @@ function flushJobs(seen?: CountMap) {
     flushPostFlushCbs(seen)
 
     currentFlushPromise = null
-    // If new jobs have been added to either queue, keep flushing
+    // 如果有新的 job 被添加到任一队列，继续刷新
     if (queue.length || pendingPostFlushCbs.length) {
       flushJobs(seen)
     }
